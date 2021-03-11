@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<!--  	  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/build/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/css/ol.css" type="text/css">
+ -->
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+    <style>
+      .map {
+        height: 800px;
+        width: 100%;
+      }
+    </style>
+    <title>OpenLayers example</title>
+    </head>
+    <body>
+    <h2>My Map</h2>
+    <div id="map" class="map"></div>
+    <div id="nodelist"></div>
+    <script type="text/javascript">
+
+   	var format = 'image/png';
+   	var layers = [
+   		new ol.layer.Tile({
+   			source : new ol.source.XYZ({
+           url: 'http://xdworld.vworld.kr:8080/2d/Base/202002/{z}/{x}/{y}.png'
+        }),
+   		}),
+   	
+   		new ol.layer.Vector({
+   			source: new ol.source.Vector({
+          format: new ol.format.GeoJSON(),
+  				url : function(extent){
+            return 'http://localhost:8600/geoserver/wfs?service=WFS&' +
+              'version=1.1.0&request=GetFeature&typename=cjmLayer:cjmPostGis&' +
+              'outputFormat=application/json&srsname=EPSG:4326&' +
+              'bbox=' + extent.join(',') + ',EPSG:4326';
+          },
+   				strategy: ol.loadingstrategy.bbox,
+   			}),
+   		})
+   	];
+  
+   	var projection = new ol.proj.Projection({
+   		code: 'EPSG:4326', //지도의 좌표
+   		units: 'degree',
+   		global: false
+   	});
+
+   	var map = new ol.Map({
+   		layers: layers,
+   		target: 'map',
+   		view: new ol.View({
+//   			center:[14157148, 4509099], //(x, y) 동쪽으로 가려면 x를 크게, 북쪽으로 가려면 y를 크게
+			center:[127,37.54], //(x,y) 동쪽으로 가려면 x를 크게, 북쪽으로 가려면 y를 크게
+  			zoom: 12,
+  			projection: 'EPSG:4326'
+   		}),
+   	});
+
+    function getData(data){
+      console.log(data);
+      console.log(data.id);
+    }
+    var i=0;
+    var select = null;
+    var mySelect = new ol.interaction.Select({
+      condition : ol.events.condition.click
+    });
+    
+    var mapClick = function(){
+      if(select !==null){
+        map.removeInteraction()
+      }
+      select = mySelect;
+      if(select !== null){
+        map.addInteraction(select);
+        select.on('select', function(event){
+          if(event.selected[0] !== undefined ){
+            console.log(event.selected);
+            console.log(event.mapBrowserEvent.coordinate);
+            console.log(event.selected[0].N.sig_kor_nm);
+          }
+        });
+      }
+    };
+    mapClick();
+
+    // map.on('click', function(event){
+      // var features = map.getFeaturesAtPixel(event.pixel);
+      // console.log(features);
+      // var mySource = layers[1].getSource();
+     // console.log(map.getView().getProjection());
+      // var url = mySource.getGetFeatureInfoUrl( event.coordinate, event.getResolution, map.getView().getProjection(), {'INFO_FORMAT': 'text/html', 'FEATURE_COUNT': 50}   );
+      //console.log(mySource);
+      //console.log(event.coordinate);
+      // console.log(event);
+    // });
+    </script>
+  </body>
+</html>
